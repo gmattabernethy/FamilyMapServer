@@ -41,20 +41,14 @@ public class Person {
      * @param fName the person's first name
      * @param lName the person's last name
      * @param gender the person's gender: 'f' or 'm'
-     * @param motherID the ID of the person's mother
-     * @param fatherID the ID of the person's father
-     * @param spouseID the ID of the person's spouse
      */
 
-    public Person(String personID, String descendant, String fName, String lName, char gender, String motherID, String fatherID, String spouseID){
+    public Person(String personID, String descendant, String fName, String lName, char gender){
         this.personID = personID;
         this.descendant = descendant;
         this.fName = fName;
         this.lName = lName;
         this.gender = gender;
-        this.motherID = motherID;
-        this.fatherID = fatherID;
-        this.spouseID = spouseID;
     }
 
     public String getID(){
@@ -80,10 +74,18 @@ public class Person {
     public String getMotherID(){
         return motherID;
     }
+
     public String getFatherID(){
         return fatherID;
     }
+
     public String getSpouseID(){
         return spouseID;
     }
+
+    public void setMotherID(String motherID){this.motherID = motherID;}
+
+    public void setFatherID(String fatherID) {this.fatherID = fatherID;}
+
+    public void setSpouseID(String spouseID) {this.spouseID = spouseID;}
 }
