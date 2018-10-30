@@ -7,9 +7,7 @@ import java.sql.*;
 
 public class UserDAO {
     private String connectionUrl;
-    public UserDAO(){
-        connectionUrl = "jdbc:sqlserver://127.0.0.1:1433;databaseName=FamilyMap Database Schema;>";
-    }
+    public UserDAO(){}
 
     public User getUser(String userName){
         String sql = "SELECT * FROM User where UserName=?";
@@ -80,5 +78,16 @@ public class UserDAO {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public static void main(String[] args){
+        UserDAO DAO = new UserDAO();
+
+        User user = new User();
+        user.setPassword("0000");
+        user.setUserName("matt");
+
+        DAO.addUser(user);
+        System.out.println(DAO.getUser("matt").getUserName());
     }
 }

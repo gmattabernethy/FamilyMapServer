@@ -1,4 +1,5 @@
 import DAO.*;
+import com.google.gson.Gson;
 import model.*;
 
 import java.util.ArrayList;
@@ -13,6 +14,13 @@ public class Facade {
     private PersonDAO personAccess;
     private UserDAO userAccess;
     private Database db;
+
+    private class Location{
+        private String country;
+        private String city;
+        private double latitude;
+        private double longitude;
+    }
 
     private Facade(){
         authTokenAccess = new AuthTokenDAO();
@@ -66,9 +74,7 @@ public class Facade {
         List<Person> family = generateAncestors(person, 4, birthYear);
 
         userAccess.addUser(user);
-        personAccess.addPerson(person);
         eventAccess.addEvent(birth);
-
         for(Person p: family) personAccess.addPerson(p);
 
         return login(userName, password);
@@ -85,6 +91,10 @@ public class Facade {
 
         List<Person> family = new ArrayList<>();
 
+        family.add(person);
+
+        if(generations < 1) return family;
+
         Person father = new Person();
         Person mother = new Person();
 
@@ -100,9 +110,6 @@ public class Facade {
         father.setSpouseID(mother.getPersonID());
         mother.setSpouseID(father.getPersonID());
 
-        family.add(father);
-        family.add(mother);
-
         family.addAll(generateAncestors(father, generations - 1, fatherBirthYear));
         family.addAll(generateAncestors(mother, generations - 1, motherBirthYear));
 
@@ -111,14 +118,16 @@ public class Facade {
 
     private void generatePerson(Person person, char gender, int birthYear){
         person.setPersonID(UUID.randomUUID().toString());
-        person.setfName(null);//TODO randomize
-        person.setlName(null);//TODO randomize
+        person.setfName(randomName("fnames.json"));
+        person.setlName(randomName("snames.json"));
         person.setGender(gender);
+
+        generateLifeEvents(person.getPersonID(), person.getDescendant(), birthYear);
     }
 
     private void generatePerson(Person person, String lName, char gender, int birthYear){
         person.setPersonID(UUID.randomUUID().toString());
-        person.setfName(null);//TODO randomize
+        person.setfName(randomName("fnames.json"));
         person.setlName(lName);
         person.setGender(gender);
 
@@ -148,15 +157,18 @@ public class Facade {
     }
 
     private void generateEvent(Event event, String personID, String userName, String eventType, int year){
+        Location loc = randomLocation();
         event.setEventID(UUID.randomUUID().toString());
         event.setPersonID(personID);
         event.setDescendant(userName);
-        event.setLatitude(0);//TODO generate random
-        event.setLongitude(0);//TODO generate random
-        event.setCountry(null);//TODO generate random
-        event.setCity(null);//TODO generate random
+        event.setLatitude(loc.latitude);
+        event.setLongitude(loc.longitude);
+        event.setCountry(loc.country);
+        event.setCity(loc.city);
         event.setEventType(eventType);
         event.setYear(year);
+
+        facade.eventAccess.addEvent(event);
     }
 
     /**
@@ -262,11 +274,9 @@ public class Facade {
 
         String fatherID = person.getFatherID();
         String motherID = person.getMotherID();
-        String spouseID = person.getSpouseID();
 
         Person father;
         Person mother;
-        Person spouse;
 
         if(fatherID != null) {
             father = personAccess.getPerson(fatherID);
@@ -275,10 +285,6 @@ public class Facade {
         if(motherID != null) {
             mother = personAccess.getPerson(motherID);
             people.addAll(getFamilyRecurse(mother));
-        }
-        if(spouseID != null) {
-            spouse = personAccess.getPerson(spouseID);
-            people.addAll(getFamilyRecurse(spouse));
         }
 
         return people;
@@ -305,5 +311,65 @@ public class Facade {
         for(Person p: family) events.addAll(eventAccess.getAllEvents(p.getPersonID()));
 
         return events;
+    }
+
+    private String randomName(String fileName){
+        Gson gson = new Gson();
+
+        class Data {
+            private List<String> strings;
+        }
+
+        Data data = gson.fromJson("/json/" + fileName, Data.class);
+
+        Random rand = new Random();
+        int i = rand.nextInt(data.strings.size());
+
+        return data.strings.get(i);
+    }
+
+    private Location randomLocation(){
+        Gson gson = new Gson();
+
+        class Data {
+            private List<Location> locations;
+        }
+
+        Data data = gson.fromJson("/json/locations.json", Data.class);
+
+        Random rand = new Random();
+        int i = rand.nextInt(data.locations.size());
+
+        return data.locations.get(i);
+    }
+
+    public static void main(String[] args){
+        Facade f = buildFacade();
+
+        f.clear();
+
+        Person p = new Person();
+        f.generatePerson(p,'M', -1234);
+
+        System.out.println(f.personAccess.getPerson(p.getPersonID()).getPersonID());
+/*
+        Event e = new Event();
+        f.generateEvent(e, "1235", "matt", "test", -1234);
+
+        System.out.println(f.eventAccess.getEvent("1235", "test").getCity());
+        System.out.println(f.eventAccess.getEvent("1235", "test").getCountry());
+/*
+        AuthToken token = f.register("matt", "0000", ".com", "Matt", "Abernethy", 'M');
+
+        System.out.println("valid token = " + f.authTokenAccess.validateAuthToken(token.getToken()));
+
+        int i = 0;
+
+        for (Person p: f.getFamily(token)) {
+            i++;
+        }
+
+        System.out.println(i);
+        */
     }
 }

@@ -8,9 +8,7 @@ import java.sql.*;
 public class PersonDAO {
     private String connectionUrl;
 
-    public PersonDAO(){
-        connectionUrl = "jdbc:sqlserver://127.0.0.1:1433;databaseName=FamilyMap Database Schema;>";
-    }
+    public PersonDAO(){}
 
     public Person getPerson(String personID){
         String sql = "SELECT * FROM Person where PersonID=?";
@@ -58,5 +56,16 @@ public class PersonDAO {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public static void main(String[] args){
+        PersonDAO DAO = new PersonDAO();
+
+        Person person = new Person();
+        person.setPersonID("1235");
+        person.setDescendant("matt");
+
+        DAO.addPerson(person);
+        System.out.println(DAO.getPerson("1235").getDescendant());
     }
 }

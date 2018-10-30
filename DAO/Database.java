@@ -16,7 +16,7 @@ public class Database {
      */
     public Connection connect() {
         // SQLite connection string
-        String url = "jdbc:sqlite:C:\\Users\\Matt\\Documents\\Homework\\CS240\\FamilyMapServer.db";
+        String url = "jdbc:sqlite:C:\\Users\\Laurel\\Downloads\\FamilyMapServer.db";
         try{ //Had to add this check when I switched to required sql driver
             Class.forName("org.sqlite.JDBC");
         }catch(Exception e){

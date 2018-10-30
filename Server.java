@@ -98,7 +98,7 @@ public class Server {
             facade.fill(null,Integer.parseInt(generations));
         }
         printResponse("fill " + userId + " " + generations, exchange);
-        facade.fill(null);
+        facade.fill(null,Integer.parseInt(generations));
     }
 
     private static void handleLoadRequest(HttpExchange exchange) throws IOException {

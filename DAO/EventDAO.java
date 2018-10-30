@@ -9,9 +9,7 @@ import java.util.List;
 
 public class EventDAO {
     private String connectionUrl;
-    public EventDAO(){
-        connectionUrl = "jdbc:sqlserver://127.0.0.1:1433;databaseName=FamilyMap Database Schema;>";
-    }
+    public EventDAO(){}
 
     public Event getEvent(String eventID){
         String sql = "SELECT *  FROM Event where EventID=?";
@@ -138,5 +136,14 @@ public class EventDAO {
         }
     }
 
+    public static void main(String[] args){
+        EventDAO DAO = new EventDAO();
 
+        Event event = new Event();
+        event.setEventID("1236");
+        event.setPersonID("1235");
+        event.setDescendant("matt");
+        DAO.addEvent(event);
+        System.out.println(DAO.getEvent("1236").getDescendant());
+    }
 }

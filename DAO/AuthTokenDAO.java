@@ -7,9 +7,7 @@ import java.sql.*;
 
 public class AuthTokenDAO {
     private String connectionUrl;
-    public AuthTokenDAO(){
-        connectionUrl = "jdbc:sqlite:C:\\Users\\Matt\\Documents\\Homework\\CS240\\FamilyMapServer.db";
-    }
+    public AuthTokenDAO(){}
 
     public Boolean validateAuthToken(String token) {
         String sql = "SELECT count(*) cnt FROM AuthToken where Token=?";
