@@ -38,30 +38,12 @@ public class Event {
      */
     private int year;
 
+
     /**
      * Event constructor
-     * @param eventID the event's ID
-     * @param descendant the username of the user to which the event belongs
-     * @param personID the ID of the person the event is associated with
-     * @param latitude the latitude of the location the event occurred
-     * @param longitude the longitude of the location the event occurred
-     * @param country the country in which the event occurred
-     * @param city the city in which the event occurred
-     * @param eventType what the event was: wedding, birth, baptism, etc.
-     * @param year the year when the event occurred
      */
 
-    public Event(String eventID, String descendant, String personID, double latitude, double longitude, String country, String city, String eventType, int year){
-        this.eventID = eventID;
-        this.descendant = descendant;
-        this.personID = personID;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.country = country;
-        this.city = city;
-        this.eventType = eventType;
-        this.year = year;
-    }
+    public Event(){}
 
     public String getEventID() {
         return eventID;
@@ -98,5 +80,42 @@ public class Event {
     public int getYear() {
         return year;
     }
+
+    public void setEventID(String eventID) {
+        this.eventID = eventID;
+    }
+
+    public void setDescendant(String descendant) {
+        this.descendant = descendant;
+    }
+
+    public void setPersonID(String personID) {
+        this.personID = personID;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public void setEventType(String eventType) {
+        this.eventType = eventType;
+    }
+
+    public void setYear(int year) {
+        this.year = year;
+    }
+
 }
 

@@ -3,6 +3,8 @@ import model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 public class Facade {
     static private Facade facade;
@@ -10,12 +12,14 @@ public class Facade {
     private EventDAO eventAccess;
     private PersonDAO personAccess;
     private UserDAO userAccess;
+    private Database db;
 
     private Facade(){
         authTokenAccess = new AuthTokenDAO();
         eventAccess = new EventDAO();
         personAccess = new PersonDAO();
         userAccess = new UserDAO();
+        db = new Database();
     }
 
     public static Facade buildFacade(){
@@ -36,15 +40,36 @@ public class Facade {
      * @return AuthToken associated with new User
      */
     public AuthToken register(String userName, String password, String email, String fName, String lName, char gender){
-        String personID = "";
-        User user = new User(userName, password, email, fName, lName, gender, personID);
+        Random rand = new Random();
+        int birthYear = 2018 - (rand.nextInt(59) + 1);
+        String personID  = UUID.randomUUID().toString();
 
-        Person person = new Person(personID, userName, fName, lName, gender);
-        personAccess.addPerson(person);
+        User user = new User();
+        user.setUserName(userName);
+        user.setPassword(password);
+        user.setEmail(email);
+        user.setfName(fName);
+        user.setlName(lName);
+        user.setGender(gender);
+        user.setPersonID(personID);
 
-        List<Person> family = generateAncestors(person, 4);
+        Person person = new Person();
+        person.setPersonID(personID);
+        person.setDescendant(userName);
+        person.setfName(fName);
+        person.setlName(lName);
+        person.setGender(gender);
+
+        Event birth = new Event();
+        generateEvent(birth, person.getPersonID(), person.getDescendant(),"Birth", birthYear);
+
+        List<Person> family = generateAncestors(person, 4, birthYear);
 
         userAccess.addUser(user);
+        personAccess.addPerson(person);
+        eventAccess.addEvent(birth);
+
+        for(Person p: family) personAccess.addPerson(p);
 
         return login(userName, password);
     }
@@ -53,25 +78,85 @@ public class Facade {
      * generates a randomized ancestor for given Person
      * @param person the Person to generate and ancestor for
      */
-    private List<Person> generateAncestors(Person person, int generations){
+    private List<Person> generateAncestors(Person person, int generations, int birthYear){
+        Random rand = new Random();
+        int fatherBirthYear = birthYear + rand.nextInt(20) + 20;
+        int motherBirthYear = birthYear + rand.nextInt(20) + 20;
+
         List<Person> family = new ArrayList<>();
 
-        Person father = new Person(null, null, null, null, ' ');
-        Person mother = new Person(null, null, null, null, ' ');
+        Person father = new Person();
+        Person mother = new Person();
 
-        person.setFatherID(father.getID());
-        person.setMotherID(mother.getID());
+        generatePerson(father, person.getlName(),'M', fatherBirthYear);
+        generatePerson(mother, 'F', motherBirthYear);
 
-        father.setSpouseID(mother.getID());
-        mother.setSpouseID(father.getID());
+        father.setDescendant(person.getDescendant());
+        mother.setDescendant(person.getDescendant());
+
+        person.setFatherID(father.getPersonID());
+        person.setMotherID(mother.getPersonID());
+
+        father.setSpouseID(mother.getPersonID());
+        mother.setSpouseID(father.getPersonID());
 
         family.add(father);
         family.add(mother);
 
-        family.addAll(generateAncestors(father, generations - 1));
-        family.addAll(generateAncestors(mother, generations - 1));
+        family.addAll(generateAncestors(father, generations - 1, fatherBirthYear));
+        family.addAll(generateAncestors(mother, generations - 1, motherBirthYear));
 
         return family;
+    }
+
+    private void generatePerson(Person person, char gender, int birthYear){
+        person.setPersonID(UUID.randomUUID().toString());
+        person.setfName(null);//TODO randomize
+        person.setlName(null);//TODO randomize
+        person.setGender(gender);
+    }
+
+    private void generatePerson(Person person, String lName, char gender, int birthYear){
+        person.setPersonID(UUID.randomUUID().toString());
+        person.setfName(null);//TODO randomize
+        person.setlName(lName);
+        person.setGender(gender);
+
+        generateLifeEvents(person.getPersonID(), person.getDescendant(), birthYear);
+    }
+
+    private void generateLifeEvents(String personID, String userName, int birthYear){
+        Random rand = new Random();
+        int marriageYear = birthYear + rand.nextInt(22) + 18;
+        int deathYear = 0;
+        while(deathYear < marriageYear){
+            deathYear = birthYear + rand.nextInt(100);
+        }
+        int baptismYear = 5000;
+        while(baptismYear > deathYear){
+            baptismYear = birthYear + rand.nextInt(100);
+        }
+
+        Event birth = new Event();
+        generateEvent(birth, personID, userName,"Birth", birthYear);
+        Event baptism = new Event();
+        generateEvent(baptism, personID, userName,"Baptism", baptismYear);
+        Event Marriage = new Event();
+        generateEvent(Marriage, personID, userName,"Marriage", marriageYear);
+        Event Death = new Event();
+        generateEvent(Death, personID, userName,"Death", deathYear);
+    }
+
+    private void generateEvent(Event event, String personID, String userName, String eventType, int year){
+        event.setEventID(UUID.randomUUID().toString());
+        event.setPersonID(personID);
+        event.setDescendant(userName);
+        event.setLatitude(0);//TODO generate random
+        event.setLongitude(0);//TODO generate random
+        event.setCountry(null);//TODO generate random
+        event.setCity(null);//TODO generate random
+        event.setEventType(eventType);
+        event.setYear(year);
     }
 
     /**
@@ -81,16 +166,25 @@ public class Facade {
      * @return new AuthToken associated with User
      */
     public AuthToken login(String userName, String password){
-        AuthToken token = new AuthToken(null, userName);
-        authTokenAccess.addAuthToken(token);
+        User user = userAccess.getUser(userName, password);
 
-        return token;
+        if(user != null){
+            AuthToken token = new AuthToken();
+            token.setToken(UUID.randomUUID().toString());
+            token.setUserName(userName);
+            authTokenAccess.addAuthToken(token);
+            return token;
+        }
+
+        return null;
     }
 
     /**
      * empty the database
      */
-    public void clear(){}
+    public void clear(){
+        db.clearDB();
+    }
 
 
     /**
@@ -100,16 +194,14 @@ public class Facade {
      * @param username the username to check
      * @param generations the number of generations to populate
      */
-    public void fill(String username, int generations){}
+    public void fill(String username, int generations){
+        User user = userAccess.getUser(username);
+        if(user == null) return;
 
-    /**
-     * check if username in database
-     * if so, remove all data connected to user from database
-     * populate a default of 4 generations for user
-     * @param username the username to check
-     */
-    public void fill(String username){}
-
+        Person person = personAccess.getPerson(user.getPersonID());
+        Event birth = eventAccess.getEvent(person.getPersonID(), "Birth");
+        generateAncestors(person, generations, birth.getYear());
+    }
 
     /**
      * empty database
@@ -131,7 +223,7 @@ public class Facade {
      * @return User associated with given AuthToken
      */
     private User userFromToken(AuthToken authToken){
-        String userName = authToken.getUsername();
+        String userName = authToken.getUserName();
 
         return userAccess.getUser(userName);
     }
@@ -210,16 +302,8 @@ public class Facade {
         List<Person> family = getFamily(token);
         List<Event> events = new ArrayList<>();
 
-        for(Person p: family){
-            Event event = eventAccess.getByPersonID(p.getID());
-            events.add(event);
-        }
+        for(Person p: family) events.addAll(eventAccess.getAllEvents(p.getPersonID()));
 
         return events;
     }
-
-    //TODO
-
-    private String generatePersonID(){return null;}
-    private String generateToken(){return null;}
 }

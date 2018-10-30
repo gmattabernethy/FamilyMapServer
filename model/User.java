@@ -32,24 +32,9 @@ public class User {
 
     /**
      * User constructer
-     * @param userName the user's username
-     * @param password the user's password
-     * @param email the user's email address
-     * @param fName the user's first name
-     * @param lName the user's last name
-     * @param gender the user's gender: 'f' or 'm'
-     * @param personID the ID of the person associated with the user
      */
 
-    public User(String userName, String password, String email, String fName, String lName, char gender, String personID){
-        this.userName = userName;
-        this.password = password;
-        this.email = email;
-        this.fName = fName;
-        this.lName = lName;
-        this.gender = gender;
-        this.personID = personID;
-    }
+    public User(){}
 
     public String getUserName() {
         return userName;
@@ -77,5 +62,33 @@ public class User {
 
     public String getPersonID() {
         return personID;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setfName(String fName) {
+        this.fName = fName;
+    }
+
+    public void setlName(String lName) {
+        this.lName = lName;
+    }
+
+    public void setGender(char gender) {
+        this.gender = gender;
+    }
+
+    public void setPersonID(String personID) {
+        this.personID = personID;
     }
 }

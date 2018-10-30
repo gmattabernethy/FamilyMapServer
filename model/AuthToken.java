@@ -2,23 +2,26 @@ package model;
 
 public class AuthToken {
     private String token;
-    private String username;
+    private String userName;
 
     /**
      * AuthToken constructor
-     * @param token the token
-     * @param username the username of the user the token is associated with
      */
-    public AuthToken(String token, String username){
-        this.token = token;
-        this.username = username;
-    }
+    public AuthToken(){}
 
     public String getToken() {
         return token;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public void setUserName(String username) {
+        this.userName = username;
     }
 }

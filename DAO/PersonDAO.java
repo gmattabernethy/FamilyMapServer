@@ -13,42 +13,50 @@ public class PersonDAO {
     }
 
     public Person getPerson(String personID){
-        /*
-        select * from person
-        where PersonID = personID
-
-         */
-        try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
-            String SQL = "select * from Person where PersonID = " + personID;
-            ResultSet rs = stmt.executeQuery(SQL);
-
-            if (rs.next()) {
-                Person person = new Person(rs.getString(0),rs.getString(1), rs.getString(2), rs.getString(3),
-                        rs.getString(4).charAt(0));
-                person.setFatherID(rs.getString(5));
-                person.setMotherID(rs.getString(6));
-                person.setSpouseID(rs.getString(7));
-                return person;
-
+        String sql = "SELECT * FROM Person where PersonID=?";
+        Person person = new Person();
+        Database db = new Database();
+        try (
+                Connection conn = db.connect();
+                PreparedStatement stmt  = conn.prepareStatement(sql);){
+            stmt.setString(1, personID);
+            ResultSet rs = stmt.executeQuery();
+            if(rs.next() == false) {
+                return null;
+            }else{
+                person.setPersonID(rs.getString("PersonID"));
+                person.setDescendant(rs.getString("Descendant"));
+                person.setfName(rs.getString("FirstName"));
+                person.setlName(rs.getString("LastName"));
+                person.setGender(rs.getString("Gender").charAt(0));
+                person.setFatherID(rs.getString("FatherID"));
+                person.setMotherID(rs.getString("MotherID"));
+                person.setSpouseID(rs.getString("SpouseID"));
             }
-        }catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
         }
-        return null;
+        return person;
     }
 
     public void addPerson(Person person){
-        /*
-        insert into Person
-        values (person.getPersonID(), person.getDescendant(), person.getfName(), person.getlname(), person.getGender(),
-        person.getFatherID(), person.getMotherID(), person.getSpouseID());
-         */
-        try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
-            String SQL = "insert into Person values (" + person.getID() + "," + person.getDescendant() +  "," + person.getfName() + "," + person.getlName() +
-                    "," + person.getGender() +  "," + person.getFatherID() +  "," + person.getMotherID() +  "," + person.getSpouseID() + ")";
-            stmt.executeQuery(SQL);
-        }catch (SQLException e) {
-            e.printStackTrace();
+        if (getPerson(person.getPersonID()) != null) return;
+        String sql = "INSERT INTO Person values (?,?,?,?,?,?,?,?)";
+        Database db = new Database();
+        try (
+                Connection conn = db.connect();
+                PreparedStatement stmt  = conn.prepareStatement(sql);){
+            stmt.setString(1, person.getPersonID());
+            stmt.setString(2, person.getDescendant());
+            stmt.setString(3, person.getfName());
+            stmt.setString(4, person.getlName());
+            stmt.setString(5, Character.toString(person.getGender()));
+            stmt.setString(6, person.getFatherID());
+            stmt.setString(7, person.getMotherID());
+            stmt.setString(8, person.getSpouseID());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
         }
     }
 }

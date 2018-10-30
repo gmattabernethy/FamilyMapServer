@@ -29,7 +29,6 @@ public class Server {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         facade = Facade.buildFacade();
 
-
         HttpContext root = server.createContext("/");
         root.setHandler(Server::handleRequest);
 

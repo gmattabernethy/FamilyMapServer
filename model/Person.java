@@ -34,24 +34,15 @@ public class Person {
      */
     private String spouseID;
 
+
+
     /**
      * Person constructor
-     * @param personID the ID of the person
-     * @param descendant the username of the user to which the person belongs
-     * @param fName the person's first name
-     * @param lName the person's last name
-     * @param gender the person's gender: 'f' or 'm'
      */
 
-    public Person(String personID, String descendant, String fName, String lName, char gender){
-        this.personID = personID;
-        this.descendant = descendant;
-        this.fName = fName;
-        this.lName = lName;
-        this.gender = gender;
-    }
+    public Person(){}
 
-    public String getID(){
+    public String getPersonID(){
         return personID;
     }
 
@@ -81,6 +72,26 @@ public class Person {
 
     public String getSpouseID(){
         return spouseID;
+    }
+
+    public void setPersonID(String personID) {
+        this.personID = personID;
+    }
+
+    public void setDescendant(String descendant) {
+        this.descendant = descendant;
+    }
+
+    public void setfName(String fName) {
+        this.fName = fName;
+    }
+
+    public void setlName(String lName) {
+        this.lName = lName;
+    }
+
+    public void setGender(char gender) {
+        this.gender = gender;
     }
 
     public void setMotherID(String motherID){this.motherID = motherID;}
