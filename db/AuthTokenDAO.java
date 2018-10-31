@@ -1,4 +1,4 @@
-package DAO;
+package db;
 
 import model.AuthToken;
 
@@ -20,11 +20,12 @@ public class AuthTokenDAO {
             stmt.setString(1, token);
             ResultSet rs = stmt.executeQuery();
             if(rs.next() == false) {
-                // TODO figure out what to do when there's no token... (maybe nothing)
                 return false;
             }else{
                 count = rs.getInt("cnt");
             }
+
+            conn.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
@@ -32,28 +33,28 @@ public class AuthTokenDAO {
         return validToken;
     }
 
-    public AuthToken getAuthToken(String userName){
-        String sql = "SELECT Token  FROM AuthToken where UserName=?";
-        AuthToken token = new AuthToken();
+    public AuthToken getAuthToken(String token){
+        String sql = "SELECT Token, UserName  FROM AuthToken where Token=?";
+        AuthToken authToken = new AuthToken();
         Database db = new Database();
         try (
                 Connection conn = db.connect();
                 PreparedStatement stmt  = conn.prepareStatement(sql);){
-            stmt.setString(1, userName);
+            stmt.setString(1, token);
             ResultSet rs = stmt.executeQuery();
             if(rs.next() == false) {
-                // TODO figure out what to do when there's no person... (maybe nothing)
                 return null;
             }else{
                 //token.setPersonID(rs.getString("PersonID"));
-                token.setToken(rs.getString("Token"));
-                token.setUserName(userName);
+                authToken.setUserName(rs.getString("UserName"));
+                authToken.setToken(token);
             }
 
+            conn.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-        return token;
+        return authToken;
     }
 
     public void addAuthToken(AuthToken token){
@@ -66,6 +67,8 @@ public class AuthTokenDAO {
             stmt.setString(1, token.getToken());
             stmt.setString(2, token.getUserName());
             stmt.executeUpdate();
+
+            conn.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }

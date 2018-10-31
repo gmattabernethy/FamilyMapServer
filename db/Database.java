@@ -1,11 +1,8 @@
-package DAO;
-import model.Person;
+package db;
 
 import java.sql.DriverManager;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.PreparedStatement;
 import java.sql.Statement;
 
 public class Database {
@@ -16,7 +13,7 @@ public class Database {
      */
     public Connection connect() {
         // SQLite connection string
-        String url = "jdbc:sqlite:C:\\Users\\Laurel\\Downloads\\FamilyMapServer.db";
+        String url = "jdbc:sqlite:C:\\Users\\Matt\\Documents\\Homework\\CS240\\FamilyMapServer.db";
         try{ //Had to add this check when I switched to required sql driver
             Class.forName("org.sqlite.JDBC");
         }catch(Exception e){
@@ -29,6 +26,22 @@ public class Database {
             System.out.println("On Connect : " + e.getMessage());
         }
         return conn;
+    }
+
+    public void deleteTree(String descendant){
+        String deleteEvent = "DELETE FROM Event Where Descendant =?";
+        String deletePerson = "DELETE FROM Person Where Descendant =?";
+
+        try (
+                Connection conn = this.connect();){
+            Statement dE  = conn.createStatement();
+            dE.executeUpdate(deleteEvent);
+            Statement dP  = conn.createStatement();
+            dP.executeUpdate(deletePerson);
+            conn.close();
+        } catch (SQLException e) {
+            System.out.println("Clear Error : " + e.getMessage());
+        }
     }
 
     public boolean clearDB(){

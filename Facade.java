@@ -1,11 +1,15 @@
-import DAO.*;
+import db.*;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import model.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.*;
 
 public class Facade {
     static private Facade facade;
@@ -98,8 +102,8 @@ public class Facade {
         Person father = new Person();
         Person mother = new Person();
 
-        generatePerson(father, person.getlName(),'M', fatherBirthYear);
-        generatePerson(mother, 'F', motherBirthYear);
+        generatePerson(father, person.getlName(),'m', fatherBirthYear);
+        generatePerson(mother, 'f', motherBirthYear);
 
         father.setDescendant(person.getDescendant());
         mother.setDescendant(person.getDescendant());
@@ -118,7 +122,7 @@ public class Facade {
 
     private void generatePerson(Person person, char gender, int birthYear){
         person.setPersonID(UUID.randomUUID().toString());
-        person.setfName(randomName("fnames.json"));
+        person.setfName(randomName(Character.toLowerCase(gender) + "names.json"));
         person.setlName(randomName("snames.json"));
         person.setGender(gender);
 
@@ -127,11 +131,11 @@ public class Facade {
 
     private void generatePerson(Person person, String lName, char gender, int birthYear){
         person.setPersonID(UUID.randomUUID().toString());
-        person.setfName(randomName("fnames.json"));
+        person.setfName(randomName(Character.toLowerCase(gender) + "names.json"));
         person.setlName(lName);
         person.setGender(gender);
 
-        generateLifeEvents(person.getPersonID(), person.getDescendant(), birthYear);
+       generateLifeEvents(person.getPersonID(), person.getDescendant(), birthYear);
     }
 
     private void generateLifeEvents(String personID, String userName, int birthYear){
@@ -194,8 +198,8 @@ public class Facade {
     /**
      * empty the database
      */
-    public void clear(){
-        db.clearDB();
+    public boolean clear(){
+        return db.clearDB();
     }
 
 
@@ -206,13 +210,16 @@ public class Facade {
      * @param username the username to check
      * @param generations the number of generations to populate
      */
-    public void fill(String username, int generations){
+    public int[] fill(String username, int generations){
         User user = userAccess.getUser(username);
-        if(user == null) return;
+        if(user == null) return null;
+
+        db.deleteTree(username);
 
         Person person = personAccess.getPerson(user.getPersonID());
         Event birth = eventAccess.getEvent(person.getPersonID(), "Birth");
         generateAncestors(person, generations, birth.getYear());
+        return null;//TODO count up people and events
     }
 
     /**
@@ -222,19 +229,45 @@ public class Facade {
      * @param people a list of person objects to add
      * @param events a list of event objects to add
      */
-    public void load(User[] users, Person[] people, Event[] events){
+    public int[] load(JsonArray users, JsonArray people, JsonArray events){
         clear();
-        for(User u: users) userAccess.addUser(u);
-        for(Person p: people) personAccess.addPerson(p);
-        for(Event e: events) eventAccess.addEvent(e);
+        Gson gson = new Gson();
+
+        if(users == null || people == null || events == null) return null;
+
+        int[] counts = {
+          users.size(),
+          people.size(),
+          events.size()
+        };
+
+
+        for(int i = 0; i < users.size(); i++){
+            JsonObject obj = users.get(i).getAsJsonObject();
+            User user = gson.fromJson(obj.toString(),User.class);
+            userAccess.addUser(user);
+        }
+        for(int i = 0; i < people.size(); i++){
+            JsonObject obj = people.get(i).getAsJsonObject();
+            Person person = gson.fromJson(obj.toString(),Person.class);
+            personAccess.addPerson(person);
+        }
+        for(int i = 0; i < events.size(); i++){
+            JsonObject obj = events.get(i).getAsJsonObject();
+            Event event = gson.fromJson(obj.toString(),Event.class);
+            eventAccess.addEvent(event);
+        }
+
+        return counts;
     }
 
     /**
      * gets User from an AuthToken
-     * @param authToken the AuthToken to get the user from
+     * @param token the AuthToken to get the user from
      * @return User associated with given AuthToken
      */
-    private User userFromToken(AuthToken authToken){
+    public User userFromToken(String token){
+        AuthToken authToken = authTokenAccess.getAuthToken(token);
         String userName = authToken.getUserName();
 
         return userAccess.getUser(userName);
@@ -253,10 +286,9 @@ public class Facade {
      * gets ALL family members of user
      * @return list of family members of current user
      */
-    public List<Person> getFamily(AuthToken token){
+    public List<Person> getFamily(String personID){
         List<Person> people = new ArrayList<>();
-        User user = userFromToken(token);
-        Person person = personAccess.getPerson(user.getPersonID());
+        Person person = personAccess.getPerson(personID);
 
         people.addAll(getFamilyRecurse(person));
 
@@ -301,11 +333,11 @@ public class Facade {
 
     /**
      * gets ALL the events associated with the current user's family
-     * @param token the AuthToken to get the current user from
+     * @param personID the ID of the Person to get the family of
      * @return list of events associated with All family members of current user
      */
-    public List<Event> getFamilyEvents(AuthToken token){
-        List<Person> family = getFamily(token);
+    public List<Event> getFamilyEvents(String personID){
+        List<Person> family = getFamily(personID);
         List<Event> events = new ArrayList<>();
 
         for(Person p: family) events.addAll(eventAccess.getAllEvents(p.getPersonID()));
@@ -314,62 +346,52 @@ public class Facade {
     }
 
     private String randomName(String fileName){
-        Gson gson = new Gson();
+        String name = "";
+        try {
+            String path = "json/" + fileName;
+            BufferedReader reader = new BufferedReader(new FileReader(path));
 
-        class Data {
-            private List<String> strings;
+            Gson gson = new Gson();
+            JsonObject obj = gson.fromJson(reader, JsonObject.class);
+            JsonArray array = obj.get("data").getAsJsonArray();
+
+            Random rand = new Random();
+            int i = rand.nextInt(array.size());
+
+            name = array.get(i).getAsString();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
-
-        Data data = gson.fromJson("/json/" + fileName, Data.class);
-
-        Random rand = new Random();
-        int i = rand.nextInt(data.strings.size());
-
-        return data.strings.get(i);
+        return name;
     }
 
     private Location randomLocation(){
-        Gson gson = new Gson();
+        Location loc = new Location();
+        try {
+            String path = "json/locations.json";
+            BufferedReader reader = new BufferedReader(new FileReader(path));
 
-        class Data {
-            private List<Location> locations;
+            Gson gson = new Gson();
+            JsonObject obj = gson.fromJson(reader, JsonObject.class);
+            JsonArray array = obj.get("data").getAsJsonArray();
+
+            Random rand = new Random();
+            int i = rand.nextInt(array.size());
+            JsonObject packet = array.get(i).getAsJsonObject();
+
+            loc = gson.fromJson(packet.toString(),Location.class);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
-
-        Data data = gson.fromJson("/json/locations.json", Data.class);
-
-        Random rand = new Random();
-        int i = rand.nextInt(data.locations.size());
-
-        return data.locations.get(i);
+        return loc;
     }
 
     public static void main(String[] args){
         Facade f = buildFacade();
 
-        f.clear();
+        ;
 
-        Person p = new Person();
-        f.generatePerson(p,'M', -1234);
 
-        System.out.println(f.personAccess.getPerson(p.getPersonID()).getPersonID());
-/*
-        Event e = new Event();
-        f.generateEvent(e, "1235", "matt", "test", -1234);
 
-        System.out.println(f.eventAccess.getEvent("1235", "test").getCity());
-        System.out.println(f.eventAccess.getEvent("1235", "test").getCountry());
-/*
-        AuthToken token = f.register("matt", "0000", ".com", "Matt", "Abernethy", 'M');
-
-        System.out.println("valid token = " + f.authTokenAccess.validateAuthToken(token.getToken()));
-
-        int i = 0;
-
-        for (Person p: f.getFamily(token)) {
-            i++;
-        }
-
-        System.out.println(i);
-        */
     }
 }

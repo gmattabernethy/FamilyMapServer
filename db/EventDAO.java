@@ -1,7 +1,6 @@
-package DAO;
+package db;
 
 import model.Event;
-import model.Person;
 
 import java.sql.*;
 import java.util.ArrayList;

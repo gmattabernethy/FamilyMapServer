@@ -1,7 +1,6 @@
-package DAO;
+package db;
 
 import model.Person;
-import model.User;
 
 import java.sql.*;
 
