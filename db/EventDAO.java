@@ -69,44 +69,33 @@ public class EventDAO {
         return event;
     }
 
-    public List<Event> getAllEvents(String personID){
-        String sql = "SELECT *  FROM Event where PersonID=?";
+    public List<Event> getAllEvents(String username){
+        String sql = "SELECT *  FROM Event where Descendant=?";
         List<Event> events = new ArrayList<>();
         Database db = new Database();
         try (
                 Connection conn = db.connect();
                 PreparedStatement stmt  = conn.prepareStatement(sql);){
-            stmt.setString(1, personID);
+            stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
-            if(rs.next() == false) {
-                return null;
-            }else{
-                Array eventIDs = rs.getArray("EventID");
-                Array descendants = rs.getArray("Descendant");
-                Array personIDs = rs.getArray("PersonID");
-                Array latitudes = rs.getArray("Latitude");
-                Array longitudes= rs.getArray("Longitude");
-                Array countries = rs.getArray("Country");
-                Array cities = rs.getArray("City");
-                Array eventTypes = rs.getArray("EventType");
-                Array years = rs.getArray("Year");
 
-                for(int i = 0; i < ((String[])eventIDs.getArray()).length; i++){
-                    Event event = new Event();
+            while (rs.next())
+            {
+                Event event = new Event();
 
-                    event.setEventID(((String[])eventIDs.getArray())[i]);
-                    event.setDescendant(((String[])descendants.getArray())[i]);
-                    event.setPersonID(((String[])personIDs.getArray())[i]);
-                    event.setLatitude(((double[])latitudes.getArray())[i]);
-                    event.setLongitude(((double[])longitudes.getArray())[i]);
-                    event.setCountry(((String[])countries.getArray())[i]);
-                    event.setCity(((String[])cities.getArray())[i]);
-                    event.setEventType(((String[])eventTypes.getArray())[i]);
-                    event.setYear(((int[])years.getArray())[i]);
+                event.setEventID(rs.getString("EventID"));
+                event.setDescendant(rs.getString("Descendant"));
+                event.setPersonID(rs.getString("PersonID"));
+                event.setLatitude(rs.getDouble("Latitude"));
+                event.setLongitude(rs.getDouble("Longitude"));
+                event.setCountry(rs.getString("Country"));
+                event.setCity(rs.getString("City"));
+                event.setEventType(rs.getString("EventType"));
+                event.setYear(rs.getInt("Year"));
 
-                    events.add(event);
-                }
+                events.add(event);
             }
+            conn.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
@@ -138,11 +127,7 @@ public class EventDAO {
     public static void main(String[] args){
         EventDAO DAO = new EventDAO();
 
-        Event event = new Event();
-        event.setEventID("1236");
-        event.setPersonID("1235");
-        event.setDescendant("matt");
-        DAO.addEvent(event);
-        System.out.println(DAO.getEvent("1236").getDescendant());
+        List<Event> events = DAO.getAllEvents("username");
+        System.out.println(events.size());
     }
 }

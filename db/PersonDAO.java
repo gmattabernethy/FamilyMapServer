@@ -3,6 +3,8 @@ package db;
 import model.Person;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PersonDAO {
     private String connectionUrl;
@@ -34,6 +36,38 @@ public class PersonDAO {
             System.out.println(e.getMessage());
         }
         return person;
+    }
+
+    public List<Person> getAllPeople(String username){
+        String sql = "SELECT *  FROM Person where Descendant=?";
+        List<Person> people = new ArrayList<>();
+        Database db = new Database();
+        try (
+                Connection conn = db.connect();
+                PreparedStatement stmt  = conn.prepareStatement(sql);){
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next())
+            {
+                Person person = new Person();
+
+                person.setPersonID(rs.getString("PersonID"));
+                person.setDescendant(rs.getString("Descendant"));
+                person.setfName(rs.getString("FirstName"));
+                person.setlName(rs.getString("LastName"));
+                person.setGender(rs.getString("Gender").charAt(0));
+                person.setFatherID(rs.getString("FatherID"));
+                person.setMotherID(rs.getString("MotherID"));
+                person.setSpouseID(rs.getString("SpouseID"));
+
+                people.add(person);
+            }
+            conn.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return people;
     }
 
     public void addPerson(Person person){

@@ -5,6 +5,7 @@ import com.sun.net.httpserver.*;
 import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ public class Server {
 
             server.createContext("/", Server::handleIndexRequest);
             server.createContext("/person", Server::handlePersonRequest);
+            server.createContext("/event", Server::handleEventRequest);
             server.createContext("/clear", Server::handleClearRequest);
             server.createContext("/load", Server::handleLoadRequest);
             server.createContext("/user/login", Server::handleLoginRequest);
@@ -157,9 +159,16 @@ public class Server {
             User user = facade.userFromToken(token);
 
             if(params.length<3){
-                List<Person> people = facade.getFamily(user.getPersonID());
-                JsonObject j = new JsonObject();
-                j.addProperty("data", gson.toJson(people));
+                List<Person> people = facade.getFamily(user.getUserName());
+                Person[] array = people.toArray(new Person[0]);
+                JSONArray jArray = new JSONArray();
+                for (Person p: people){
+                    jArray.put(p);
+                }
+
+                JSONObject j = new JSONObject();
+                j.put("data", jArray);
+
                 if(people!=null) {
                     sendServerResponse(j, HttpURLConnection.HTTP_OK, exchange);//TODO fix escaping issue
                 }
@@ -167,9 +176,52 @@ public class Server {
                 String personID = params[2];
                 Person p = facade.getPerson(personID);
                 if(p!=null){
-                    sendServerResponse(p, HttpURLConnection.HTTP_OK, exchange);
+                    if(p.getDescendant().equals(user.getUserName())){
+                        sendServerResponse(p, HttpURLConnection.HTTP_OK, exchange);
+                    }
+                    else{
+                        sendServerResponse(apiMessage("Requested person does not belong to this user"), HttpURLConnection.HTTP_UNAUTHORIZED, exchange);
+                    }
                 }else{
                     sendServerResponse(apiMessage("Invalid personID parameter"), HttpURLConnection.HTTP_NOT_FOUND, exchange);
+                }
+            }
+        }else{
+            sendServerResponse(apiMessage("Invalid auth token"), HttpURLConnection.HTTP_UNAUTHORIZED, exchange);
+        }
+    }
+
+    private static void handleEventRequest(HttpExchange exchange) throws IOException {
+        String requestMethod = exchange.getRequestMethod();
+        String path  = exchange.getRequestURI().toString();
+        String token = exchange.getRequestHeaders().getFirst("Authorization");
+        System.out.println(requestMethod + " method called on route " + path + " with token : " + token);
+
+        AuthTokenDAO auth = new AuthTokenDAO();
+        if(auth.validateAuthToken(token)){
+            String[] params=path.split("/");
+            User user = facade.userFromToken(token);
+
+            if(params.length<3){
+                List<Event> events = facade.getFamilyEvents(user.getUserName());
+                Event[] array = events.toArray(new Event[0]);
+                JsonObject j = new JsonObject();
+                j.addProperty("data", gson.toJson(events));
+                if(events!=null) {
+                    sendServerResponse(array, HttpURLConnection.HTTP_OK, exchange);//TODO fix escaping issue
+                }
+            }else{
+                String eventID = params[2];
+                Event e = facade.getEvent(eventID);
+                if(e!=null){
+                    if(e.getDescendant().equals(user.getUserName())){
+                        sendServerResponse(e, HttpURLConnection.HTTP_OK, exchange);
+                    }
+                    else{
+                        sendServerResponse(apiMessage("Requested event does not belong to this user"), HttpURLConnection.HTTP_UNAUTHORIZED, exchange);
+                    }
+                }else{
+                    sendServerResponse(apiMessage("Invalid eventID parameter"), HttpURLConnection.HTTP_NOT_FOUND, exchange);
                 }
             }
         }else{

@@ -102,11 +102,11 @@ public class Facade {
         Person father = new Person();
         Person mother = new Person();
 
-        generatePerson(father, person.getlName(),'m', fatherBirthYear);
-        generatePerson(mother, 'f', motherBirthYear);
-
         father.setDescendant(person.getDescendant());
         mother.setDescendant(person.getDescendant());
+
+        generatePerson(father, person.getlName(),'m', fatherBirthYear);
+        generatePerson(mother, 'f', motherBirthYear);
 
         person.setFatherID(father.getPersonID());
         person.setMotherID(mother.getPersonID());
@@ -284,42 +284,11 @@ public class Facade {
 
     /**
      * gets ALL family members of user
+     * @param username the username of the user
      * @return list of family members of current user
      */
-    public List<Person> getFamily(String personID){
-        List<Person> people = new ArrayList<>();
-        Person person = personAccess.getPerson(personID);
-
-        people.addAll(getFamilyRecurse(person));
-
-        return people;
-    }
-
-    /**
-     * recursively gets ALL family members of a Person
-     * @param person the Person to find the family of
-     * @return list of family members of given Person
-     */
-    private List<Person> getFamilyRecurse(Person person){
-        List<Person> people = new ArrayList<>();
-        people.add(person);
-
-        String fatherID = person.getFatherID();
-        String motherID = person.getMotherID();
-
-        Person father;
-        Person mother;
-
-        if(fatherID != null) {
-            father = personAccess.getPerson(fatherID);
-            people.addAll(getFamilyRecurse(father));
-        }
-        if(motherID != null) {
-            mother = personAccess.getPerson(motherID);
-            people.addAll(getFamilyRecurse(mother));
-        }
-
-        return people;
+    public List<Person> getFamily(String username){
+       return personAccess.getAllPeople(username);
     }
 
     /**
@@ -333,16 +302,11 @@ public class Facade {
 
     /**
      * gets ALL the events associated with the current user's family
-     * @param personID the ID of the Person to get the family of
+     * @param username the username of the current user
      * @return list of events associated with All family members of current user
      */
-    public List<Event> getFamilyEvents(String personID){
-        List<Person> family = getFamily(personID);
-        List<Event> events = new ArrayList<>();
-
-        for(Person p: family) events.addAll(eventAccess.getAllEvents(p.getPersonID()));
-
-        return events;
+    public List<Event> getFamilyEvents(String username){
+        return eventAccess.getAllEvents(username);
     }
 
     private String randomName(String fileName){
@@ -389,7 +353,10 @@ public class Facade {
     public static void main(String[] args){
         Facade f = buildFacade();
 
-        ;
+        List<Person> list= f.getFamily("username");
+        Person[] array = list.toArray(new Person[0]);
+        System.out.println(list.size());
+        System.out.println(array.length);
 
 
 
