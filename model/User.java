@@ -16,11 +16,11 @@ public class User {
     /**
      * the user's first name
      */
-    private String fName;
+    private String firstName;
     /**
      * the user's last name
      */
-    private String lName;
+    private String lastName;
     /**
      * the user's gender: 'f' or 'm'
      */
@@ -48,12 +48,12 @@ public class User {
         return email;
     }
 
-    public String getfName() {
-        return fName;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public String getlName() {
-        return lName;
+    public String getLastName() {
+        return lastName;
     }
 
     public char getGender() {
@@ -76,12 +76,12 @@ public class User {
         this.email = email;
     }
 
-    public void setfName(String fName) {
-        this.fName = fName;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
-    public void setlName(String lName) {
-        this.lName = lName;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public void setGender(char gender) {

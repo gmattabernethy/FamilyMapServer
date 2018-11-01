@@ -3,8 +3,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import model.*;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -52,6 +50,8 @@ public class Facade {
      * @return AuthToken associated with new User
      */
     public AuthToken register(String userName, String password, String email, String fName, String lName, char gender){
+        if(!userAccess.userAvailable(userName)) return null;
+
         Random rand = new Random();
         int birthYear = 2018 - (rand.nextInt(59) + 1);
         String personID  = UUID.randomUUID().toString();
@@ -60,16 +60,16 @@ public class Facade {
         user.setUserName(userName);
         user.setPassword(password);
         user.setEmail(email);
-        user.setfName(fName);
-        user.setlName(lName);
+        user.setFirstName(fName);
+        user.setLastName(lName);
         user.setGender(gender);
         user.setPersonID(personID);
 
         Person person = new Person();
         person.setPersonID(personID);
         person.setDescendant(userName);
-        person.setfName(fName);
-        person.setlName(lName);
+        person.setFirstName(fName);
+        person.setLastName(lName);
         person.setGender(gender);
 
         Event birth = new Event();
@@ -105,14 +105,14 @@ public class Facade {
         father.setDescendant(person.getDescendant());
         mother.setDescendant(person.getDescendant());
 
-        generatePerson(father, person.getlName(),'m', fatherBirthYear);
+        generatePerson(father, person.getLastName(),'m', fatherBirthYear);
         generatePerson(mother, 'f', motherBirthYear);
 
-        person.setFatherID(father.getPersonID());
-        person.setMotherID(mother.getPersonID());
+        person.setFather(father.getPersonID());
+        person.setMother(mother.getPersonID());
 
-        father.setSpouseID(mother.getPersonID());
-        mother.setSpouseID(father.getPersonID());
+        father.setSpouse(mother.getPersonID());
+        mother.setSpouse(father.getPersonID());
 
         family.addAll(generateAncestors(father, generations - 1, fatherBirthYear));
         family.addAll(generateAncestors(mother, generations - 1, motherBirthYear));
@@ -122,8 +122,8 @@ public class Facade {
 
     private void generatePerson(Person person, char gender, int birthYear){
         person.setPersonID(UUID.randomUUID().toString());
-        person.setfName(randomName(Character.toLowerCase(gender) + "names.json"));
-        person.setlName(randomName("snames.json"));
+        person.setFirstName(randomName(Character.toLowerCase(gender) + "names.json"));
+        person.setLastName(randomName("snames.json"));
         person.setGender(gender);
 
         generateLifeEvents(person.getPersonID(), person.getDescendant(), birthYear);
@@ -131,8 +131,8 @@ public class Facade {
 
     private void generatePerson(Person person, String lName, char gender, int birthYear){
         person.setPersonID(UUID.randomUUID().toString());
-        person.setfName(randomName(Character.toLowerCase(gender) + "names.json"));
-        person.setlName(lName);
+        person.setFirstName(randomName(Character.toLowerCase(gender) + "names.json"));
+        person.setLastName(lName);
         person.setGender(gender);
 
        generateLifeEvents(person.getPersonID(), person.getDescendant(), birthYear);
@@ -211,15 +211,34 @@ public class Facade {
      * @param generations the number of generations to populate
      */
     public int[] fill(String username, int generations){
+        Random rand = new Random();
+        int birthYear = 2018 - (rand.nextInt(59) + 1);
         User user = userAccess.getUser(username);
-        if(user == null) return null;
+        if(user == null){
+            System.out.println("bad user");
+            return null;
+        }
 
         db.deleteTree(username);
 
-        Person person = personAccess.getPerson(user.getPersonID());
-        Event birth = eventAccess.getEvent(person.getPersonID(), "Birth");
-        generateAncestors(person, generations, birth.getYear());
-        return null;//TODO count up people and events
+        Person person = new Person();
+        person.setPersonID(user.getPersonID());
+        person.setDescendant(username);
+        person.setFirstName(user.getFirstName());
+        person.setLastName(user.getLastName());
+        person.setGender(user.getGender());
+
+        Event birth = new Event();
+        generateEvent(birth,person.getPersonID(),username,"Birth", birthYear);
+        eventAccess.addEvent(birth);
+
+        List<Person> family = generateAncestors(person, generations, birth.getYear());
+        List<Event> events = eventAccess.getAllEvents(username);
+
+        for(Person p: family) personAccess.addPerson(p);
+
+        int[] result = {family.size(), events.size()};
+        return result;
     }
 
     /**
@@ -268,6 +287,7 @@ public class Facade {
      */
     public User userFromToken(String token){
         AuthToken authToken = authTokenAccess.getAuthToken(token);
+        if(authToken == null) return null;
         String userName = authToken.getUserName();
 
         return userAccess.getUser(userName);
@@ -348,17 +368,5 @@ public class Facade {
             e.printStackTrace();
         }
         return loc;
-    }
-
-    public static void main(String[] args){
-        Facade f = buildFacade();
-
-        List<Person> list= f.getFamily("username");
-        Person[] array = list.toArray(new Person[0]);
-        System.out.println(list.size());
-        System.out.println(array.length);
-
-
-
     }
 }

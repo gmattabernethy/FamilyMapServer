@@ -5,10 +5,7 @@ import com.sun.net.httpserver.*;
 import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import db.*;
 import model.*;
@@ -53,25 +50,29 @@ public class Server {
     private static void handleFillRequest(HttpExchange exchange) throws IOException {
         URI requestURI = exchange.getRequestURI();
         String str = requestURI.toString();
-        String userName = str.split("/")[2];
+        String[] params = str.split("/");
+        String userName = params[2];
         String generations = "";
         UserDAO ud = new UserDAO();
-        if(str.split("/")[3] != null){
-            generations = str.split("/")[3];
+        System.out.println(params.length);
+        if(params.length > 3){
+            System.out.println("not null");
+            generations = params[3];
             if(Integer.parseInt(generations) < 0 || ud.userAvailable(userName)) {
                 sendServerResponse(apiMessage("Invalid userName or generations parameter"), HttpURLConnection.HTTP_BAD_REQUEST, exchange);
             }
             else {
-                facade.fill(userName,Integer.parseInt(generations));
-                sendServerResponse(apiMessage("fill " + userName + " " + generations), HttpURLConnection.HTTP_OK, exchange);
+                int[] counts = facade.fill(userName,Integer.parseInt(generations));
+                sendServerResponse(apiMessage("Successfully added " + counts[0] + " persons and " + counts[1] + " events to the database"), HttpURLConnection.HTTP_OK, exchange);
             }
         }else{
+            System.out.println("null");
             if(ud.userAvailable(userName)){
                 sendServerResponse(apiMessage("Invalid userName or generations parameter"), HttpURLConnection.HTTP_BAD_REQUEST, exchange);
             }
             else {
-                facade.fill(userName,4);
-                sendServerResponse(apiMessage("fill " + userName + " " + generations), HttpURLConnection.HTTP_OK, exchange);
+                int[] counts = facade.fill(userName,4);
+                sendServerResponse(apiMessage("Successfully added " + counts[0] + " persons and " + counts[1] + " events to the database"), HttpURLConnection.HTTP_OK, exchange);
             }
         }
     }
@@ -124,7 +125,6 @@ public class Server {
     private static void handleLoadRequest(HttpExchange exchange) throws IOException {
         JSONObject j = getRequestBody(exchange);
         String json = j.toString();
-        System.out.println(json.length());
         JsonObject obj = gson.fromJson(json, JsonObject.class);
 
         if(json.equals("{}")){
@@ -161,16 +161,12 @@ public class Server {
             if(params.length<3){
                 List<Person> people = facade.getFamily(user.getUserName());
                 Person[] array = people.toArray(new Person[0]);
-                JSONArray jArray = new JSONArray();
-                for (Person p: people){
-                    jArray.put(p);
-                }
 
-                JSONObject j = new JSONObject();
-                j.put("data", jArray);
+                Map<String, Person[]> map = new HashMap<>();
+                map.put("data", array);
 
                 if(people!=null) {
-                    sendServerResponse(j, HttpURLConnection.HTTP_OK, exchange);//TODO fix escaping issue
+                    sendServerResponse(map, HttpURLConnection.HTTP_OK, exchange);
                 }
             }else{
                 String personID = params[2];
@@ -205,10 +201,11 @@ public class Server {
             if(params.length<3){
                 List<Event> events = facade.getFamilyEvents(user.getUserName());
                 Event[] array = events.toArray(new Event[0]);
-                JsonObject j = new JsonObject();
-                j.addProperty("data", gson.toJson(events));
+
+                Map<String, Event[]> map = new HashMap<>();
+                map.put("data", array);
                 if(events!=null) {
-                    sendServerResponse(array, HttpURLConnection.HTTP_OK, exchange);//TODO fix escaping issue
+                    sendServerResponse(map, HttpURLConnection.HTTP_OK, exchange);
                 }
             }else{
                 String eventID = params[2];

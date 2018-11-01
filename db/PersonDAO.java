@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PersonDAO {
-    private String connectionUrl;
-
     public PersonDAO(){}
 
     public Person getPerson(String personID){
@@ -25,12 +23,12 @@ public class PersonDAO {
             }else{
                 person.setPersonID(rs.getString("PersonID"));
                 person.setDescendant(rs.getString("Descendant"));
-                person.setfName(rs.getString("FirstName"));
-                person.setlName(rs.getString("LastName"));
+                person.setFirstName(rs.getString("FirstName"));
+                person.setLastName(rs.getString("LastName"));
                 person.setGender(rs.getString("Gender").charAt(0));
-                person.setFatherID(rs.getString("FatherID"));
-                person.setMotherID(rs.getString("MotherID"));
-                person.setSpouseID(rs.getString("SpouseID"));
+                person.setFather(rs.getString("FatherID"));
+                person.setMother(rs.getString("MotherID"));
+                person.setSpouse(rs.getString("SpouseID"));
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -54,12 +52,12 @@ public class PersonDAO {
 
                 person.setPersonID(rs.getString("PersonID"));
                 person.setDescendant(rs.getString("Descendant"));
-                person.setfName(rs.getString("FirstName"));
-                person.setlName(rs.getString("LastName"));
+                person.setFirstName(rs.getString("FirstName"));
+                person.setLastName(rs.getString("LastName"));
                 person.setGender(rs.getString("Gender").charAt(0));
-                person.setFatherID(rs.getString("FatherID"));
-                person.setMotherID(rs.getString("MotherID"));
-                person.setSpouseID(rs.getString("SpouseID"));
+                person.setFather(rs.getString("FatherID"));
+                person.setMother(rs.getString("MotherID"));
+                person.setSpouse(rs.getString("SpouseID"));
 
                 people.add(person);
             }
@@ -79,26 +77,15 @@ public class PersonDAO {
                 PreparedStatement stmt  = conn.prepareStatement(sql);){
             stmt.setString(1, person.getPersonID());
             stmt.setString(2, person.getDescendant());
-            stmt.setString(3, person.getfName());
-            stmt.setString(4, person.getlName());
+            stmt.setString(3, person.getFirstName());
+            stmt.setString(4, person.getLastName());
             stmt.setString(5, Character.toString(person.getGender()));
-            stmt.setString(6, person.getFatherID());
-            stmt.setString(7, person.getMotherID());
-            stmt.setString(8, person.getSpouseID());
+            stmt.setString(6, person.getFather());
+            stmt.setString(7, person.getMother());
+            stmt.setString(8, person.getSpouse());
             stmt.executeUpdate();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-    }
-
-    public static void main(String[] args){
-        PersonDAO DAO = new PersonDAO();
-
-        Person person = new Person();
-        person.setPersonID("1235");
-        person.setDescendant("matt");
-
-        DAO.addPerson(person);
-        System.out.println(DAO.getPerson("1235").getDescendant());
     }
 }

@@ -73,15 +73,4 @@ public class AuthTokenDAO {
             System.out.println(e.getMessage());
         }
     }
-
-    public static void main(String[] args){
-        AuthTokenDAO DAO = new AuthTokenDAO();
-
-        AuthToken token = new AuthToken();
-        token.setToken("1234");
-        token.setUserName("matt");
-
-        DAO.addAuthToken(token);
-        System.out.println(DAO.getAuthToken("matt").getToken());
-    }
 }

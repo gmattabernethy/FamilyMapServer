@@ -46,8 +46,8 @@ public class UserDAO {
             }else{
                 user.setUserName(rs.getString("UserName"));
                 user.setPassword(rs.getString("Password"));
-                user.setfName(rs.getString("FirstName"));
-                user.setlName(rs.getString("LastName"));
+                user.setFirstName(rs.getString("FirstName"));
+                user.setLastName(rs.getString("LastName"));
                 user.setGender(rs.getString("Gender").charAt(0));
                 user.setPersonID(rs.getString("PersonID"));
             }
@@ -75,8 +75,8 @@ public class UserDAO {
             }else{
                 user.setUserName(rs.getString("UserName"));
                 user.setPassword(rs.getString("Password"));
-                user.setfName(rs.getString("FirstName"));
-                user.setlName(rs.getString("LastName"));
+                user.setFirstName(rs.getString("FirstName"));
+                user.setLastName(rs.getString("LastName"));
                 user.setGender(rs.getString("Gender").charAt(0));
                 user.setPersonID(rs.getString("PersonID"));
 
@@ -98,8 +98,8 @@ public class UserDAO {
             stmt.setString(1, user.getUserName());
             stmt.setString(2, user.getPassword());
             stmt.setString(3, user.getEmail());
-            stmt.setString(4, user.getfName());
-            stmt.setString(5, user.getlName());
+            stmt.setString(4, user.getFirstName());
+            stmt.setString(5, user.getLastName());
             stmt.setString(6, Character.toString(user.getGender()));
             stmt.setString(7, user.getPersonID());
             stmt.executeUpdate();
@@ -108,16 +108,5 @@ public class UserDAO {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-    }
-
-    public static void main(String[] args){
-        UserDAO DAO = new UserDAO();
-
-        User user = new User();
-        user.setPassword("0000");
-        user.setUserName("matt");
-
-        DAO.addUser(user);
-        System.out.println(DAO.getUser("matt").getUserName());
     }
 }

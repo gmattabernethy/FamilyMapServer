@@ -1,9 +1,6 @@
 package db;
 
-import java.sql.DriverManager;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class Database {
 
@@ -14,7 +11,7 @@ public class Database {
     public Connection connect() {
         // SQLite connection string
         String url = "jdbc:sqlite:FamilyMapServer.db";
-        try{ //Had to add this check when I switched to required sql driver
+        try{
             Class.forName("org.sqlite.JDBC");
         }catch(Exception e){
             System.out.println(e.getMessage());
@@ -33,11 +30,16 @@ public class Database {
         String deletePerson = "DELETE FROM Person Where Descendant =?";
 
         try (
-                Connection conn = this.connect();){
-            Statement dE  = conn.createStatement();
-            dE.executeUpdate(deleteEvent);
-            Statement dP  = conn.createStatement();
-            dP.executeUpdate(deletePerson);
+                Connection conn = this.connect();
+                PreparedStatement dEventStmt  = conn.prepareStatement(deleteEvent);
+                PreparedStatement dPersonStmt  = conn.prepareStatement(deletePerson)
+            ){
+            dEventStmt.setString(1, descendant);
+            dPersonStmt.setString(1, descendant);
+
+            dEventStmt.executeUpdate();
+            dPersonStmt.executeUpdate();
+
             conn.close();
         } catch (SQLException e) {
             System.out.println("Clear Error : " + e.getMessage());
@@ -117,12 +119,5 @@ public class Database {
             return false;
         }
 
-    }
-
-
-
-    public static void main(String[] args) {
-        Database db = new Database();
-        db.clearDB();
     }
 }

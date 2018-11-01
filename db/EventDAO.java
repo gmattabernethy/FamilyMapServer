@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EventDAO {
-    private String connectionUrl;
     public EventDAO(){}
 
     public Event getEvent(String eventID){
@@ -18,36 +17,6 @@ public class EventDAO {
                 Connection conn = db.connect();
                 PreparedStatement stmt  = conn.prepareStatement(sql);){
             stmt.setString(1, eventID);
-            ResultSet rs = stmt.executeQuery();
-            if(rs.next() == false) {
-                return null;
-            }else{
-                event.setEventID(rs.getString("EventID"));
-                event.setDescendant(rs.getString("Descendant"));
-                event.setPersonID(rs.getString("PersonID"));
-                event.setLatitude(rs.getDouble("Latitude"));
-                event.setLongitude(rs.getDouble("Longitude"));
-                event.setCountry(rs.getString("Country"));
-                event.setCity(rs.getString("City"));
-                event.setEventType(rs.getString("EventType"));
-                event.setYear(rs.getInt("Year"));
-            }
-
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        return event;
-    }
-
-    public Event getEvent(String personID, String eventType){
-        String sql = "SELECT *  FROM Event where PersonID=? AND EventType =?";
-        Event event = new Event();
-        Database db = new Database();
-        try (
-                Connection conn = db.connect();
-                PreparedStatement stmt  = conn.prepareStatement(sql);){
-            stmt.setString(1, personID);
-            stmt.setString(2, eventType);
             ResultSet rs = stmt.executeQuery();
             if(rs.next() == false) {
                 return null;
@@ -122,12 +91,5 @@ public class EventDAO {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-    }
-
-    public static void main(String[] args){
-        EventDAO DAO = new EventDAO();
-
-        List<Event> events = DAO.getAllEvents("username");
-        System.out.println(events.size());
     }
 }
