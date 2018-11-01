@@ -33,7 +33,7 @@ public class AuthTokenDAO {
     }
 
     public AuthToken getAuthToken(String token){
-        String sql = "SELECT Token, UserName  FROM AuthToken where Token=?";
+        String sql = "SELECT *  FROM AuthToken where Token=?";
         AuthToken authToken = new AuthToken();
         Database db = new Database();
         try (

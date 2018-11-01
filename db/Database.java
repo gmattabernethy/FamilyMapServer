@@ -119,6 +119,10 @@ public class Database {
             System.out.println("Clear Error : " + e.getMessage());
             return false;
         }
+    }
 
+    public static void main(String[] args){
+        Database db = new Database();
+        db.clearDB();
     }
 }

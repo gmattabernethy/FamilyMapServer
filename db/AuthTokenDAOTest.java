@@ -48,6 +48,7 @@ public class AuthTokenDAOTest {
         AuthToken token = new AuthToken();
         token.setToken("newToken");
         token.setUserName("user");
+        token.setPersonID("person");
 
         DAO.addAuthToken(token);
 
