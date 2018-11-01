@@ -6,7 +6,6 @@ import java.sql.*;
 
 
 public class AuthTokenDAO {
-    private String connectionUrl;
     public AuthTokenDAO(){}
 
     public Boolean validateAuthToken(String token) {
@@ -45,8 +44,8 @@ public class AuthTokenDAO {
             if(rs.next() == false) {
                 return null;
             }else{
-                //token.setPersonID(rs.getString("PersonID"));
                 authToken.setUserName(rs.getString("UserName"));
+                authToken.setPersonID(rs.getString("PersonID"));
                 authToken.setToken(token);
             }
 
@@ -59,13 +58,14 @@ public class AuthTokenDAO {
 
     public void addAuthToken(AuthToken token){
         if (validateAuthToken(token.getToken())) return;
-        String sql = "INSERT INTO AuthToken values (?,?)";
+        String sql = "INSERT INTO AuthToken values (?,?,?)";
         Database db = new Database();
         try (
                 Connection conn = db.connect();
                 PreparedStatement stmt  = conn.prepareStatement(sql);){
             stmt.setString(1, token.getToken());
             stmt.setString(2, token.getUserName());
+            stmt.setString(3, token.getPersonID());
             stmt.executeUpdate();
 
             conn.close();

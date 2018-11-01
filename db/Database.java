@@ -84,11 +84,12 @@ public class Database {
                 " PRIMARY KEY(`Username`)\n" +
                 ")";
 
-        String createAuthToken = "CREATE TABLE IF NOT EXISTS AuthToken (\n" +
-                "`Token` varchar ( 255 ) UNIQUE,\n" +
-                "`UserName` varchar ( 255 ),\n" +
-                " PRIMARY KEY(`Token`)\n" +
-                ")";
+        String createAuthToken = "CREATE TABLE `AuthToken` (\n" +
+                "\t`Token`\tvarchar ( 255 ) UNIQUE,\n" +
+                "\t`UserName`\tvarchar ( 255 ),\n" +
+                "\t`PersonID`\tvarchar ( 255 ),\n" +
+                "\tPRIMARY KEY(`Token`)\n" +
+                ");";
 
         String dropEvent = "Drop table IF  EXISTS Event;";
         String dropPerson = "Drop table IF  EXISTS Person;";

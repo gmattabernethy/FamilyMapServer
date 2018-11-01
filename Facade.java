@@ -90,8 +90,9 @@ public class Facade {
      */
     private List<Person> generateAncestors(Person person, int generations, int birthYear){
         Random rand = new Random();
-        int fatherBirthYear = birthYear + rand.nextInt(20) + 20;
-        int motherBirthYear = birthYear + rand.nextInt(20) + 20;
+        int fatherBirthYear = birthYear - rand.nextInt(20) - 20;
+        int motherBirthYear = birthYear - rand.nextInt(20) - 20;
+        int marriageYear = fatherBirthYear + rand.nextInt(22) + 18;
 
         List<Person> family = new ArrayList<>();
 
@@ -107,6 +108,16 @@ public class Facade {
 
         generatePerson(father, person.getLastName(),'m', fatherBirthYear);
         generatePerson(mother, 'f', motherBirthYear);
+
+        Location loc = randomLocation();
+
+        Event fMarriage = new Event();
+        generateEvent(fMarriage, father.getPersonID(), father.getDescendant(),"Marriage", marriageYear, loc);
+        Event mMarriage = new Event();
+        generateEvent(mMarriage, mother.getPersonID(), mother.getDescendant(),"Marriage", marriageYear, loc);
+
+        eventAccess.addEvent(fMarriage);
+        eventAccess.addEvent(mMarriage);
 
         person.setFather(father.getPersonID());
         person.setMother(mother.getPersonID());
@@ -140,28 +151,34 @@ public class Facade {
 
     private void generateLifeEvents(String personID, String userName, int birthYear){
         Random rand = new Random();
-        int marriageYear = birthYear + rand.nextInt(22) + 18;
-        int deathYear = 0;
-        while(deathYear < marriageYear){
-            deathYear = birthYear + rand.nextInt(100);
-        }
-        int baptismYear = 5000;
-        while(baptismYear > deathYear){
-            baptismYear = birthYear + rand.nextInt(100);
-        }
+        int deathYear = birthYear + rand.nextInt(50) + 50;
+        int baptismYear = birthYear + rand.nextInt(49);
 
         Event birth = new Event();
         generateEvent(birth, personID, userName,"Birth", birthYear);
         Event baptism = new Event();
         generateEvent(baptism, personID, userName,"Baptism", baptismYear);
-        Event Marriage = new Event();
-        generateEvent(Marriage, personID, userName,"Marriage", marriageYear);
+
         Event Death = new Event();
         generateEvent(Death, personID, userName,"Death", deathYear);
     }
 
     private void generateEvent(Event event, String personID, String userName, String eventType, int year){
         Location loc = randomLocation();
+        event.setEventID(UUID.randomUUID().toString());
+        event.setPersonID(personID);
+        event.setDescendant(userName);
+        event.setLatitude(loc.latitude);
+        event.setLongitude(loc.longitude);
+        event.setCountry(loc.country);
+        event.setCity(loc.city);
+        event.setEventType(eventType);
+        event.setYear(year);
+
+        facade.eventAccess.addEvent(event);
+    }
+
+    private void generateEvent(Event event, String personID, String userName, String eventType, int year, Location loc){
         event.setEventID(UUID.randomUUID().toString());
         event.setPersonID(personID);
         event.setDescendant(userName);
@@ -188,6 +205,7 @@ public class Facade {
             AuthToken token = new AuthToken();
             token.setToken(UUID.randomUUID().toString());
             token.setUserName(userName);
+            token.setPersonID(user.getPersonID());
             authTokenAccess.addAuthToken(token);
             return token;
         }

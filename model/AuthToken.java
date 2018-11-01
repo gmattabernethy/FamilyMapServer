@@ -3,6 +3,7 @@ package model;
 public class AuthToken {
     private String token;
     private String userName;
+    private String personID;
 
     /**
      * AuthToken constructor
@@ -23,5 +24,13 @@ public class AuthToken {
 
     public void setUserName(String username) {
         this.userName = username;
+    }
+
+    public String getPersonID() {
+        return personID;
+    }
+
+    public void setPersonID(String personID) {
+        this.personID = personID;
     }
 }
