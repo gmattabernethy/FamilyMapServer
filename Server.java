@@ -106,7 +106,7 @@ public class Server {
             if(a!=null){
                 sendServerResponse(a, HttpURLConnection.HTTP_OK, exchange);
             }else{
-                sendServerResponse(apiMessage("Request property missing or has invalid value"), HttpURLConnection.HTTP_NOT_FOUND, exchange);
+                sendServerResponse(apiMessage("Request property missing or has invalid value"), HttpURLConnection.HTTP_BAD_REQUEST, exchange);
             }
         }else{
             sendServerResponse(apiMessage("Request property missing or has invalid value"), HttpURLConnection.HTTP_BAD_REQUEST, exchange);
